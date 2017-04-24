@@ -206,16 +206,18 @@ namespace Basic_Neural_Network
             return accuracy / numData;
         }
 
-        public void train(int numData, double[][] input, double[][] target)
+        public void train(int numTrainCycles, int numData, double[][] input, double[][] target)
         {
-            for (int d = 0; d < numData; d++)
+            for (int d = 0; d < numTrainCycles; d++)
             {
+                Random rnd = new Random();
+                rnd.Next(0, numData - 1);
                 for (int i = 0; i < numFirstLayerNeurons; i++)
                     for (int j = 0; j < numInputs; j++)
-                        layers[0].neurons[i].input[j] = input[d][j];
+                        layers[0].neurons[i].input[j] = input[rnd][j];
                 forwardProp();
                 for (int i = 0; i < numOutputs; i++)
-                    ((OutputLayer)layers[layers.Count - 1]).target[i] = target[d][i];
+                    ((OutputLayer)layers[layers.Count - 1]).target[i] = target[rnd][i];
                 ((OutputLayer)layers[layers.Count - 1]).backProp();
                 for (int i = layers.Count - 2; i >= 0; i--)
                     layers[i].backProp(layers[i + 1]);
