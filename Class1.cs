@@ -84,16 +84,11 @@ namespace Basic_Neural_Network
         public int numNeurons;
         public Neuron[] neurons;
 
-        public void getInputs(Layer prevLayer)
+        public void forwardProp(Layer prevLayer)
         {
             for (int i = 0; i < numNeurons; i++)
                 for (int j = 0; j < neurons[i].numInputs; j++)
                     neurons[i].input[j] = prevLayer.neurons[i].output;
-        }
-
-        public void forwardProp(Layer prevLayer)
-        {
-            getInputs(prevLayer);
         }
 
         public void changeWeights()
@@ -134,14 +129,12 @@ namespace Basic_Neural_Network
 
     public class OutputLayer : Layer
     {
-        public double[] target;
 
         public OutputLayer(int numNeurons, int numInputs) : base(numNeurons, numInputs)
         {
-            target = new double[numNeurons];
         }
 
-        public void backProp()
+        public void backProp(double[] target)
         {
             for (int i = 0; i < numNeurons; i++)
             {
@@ -206,24 +199,39 @@ namespace Basic_Neural_Network
             return accuracy / numData;
         }
 
+        public void trainSingle(double[] input, double[] target)
+        {
+            for (int i = 0; i < numFirstLayerNeurons; i++)
+                for (int j = 0; j < numInputs; j++)
+                    layers[0].neurons[i].input[j] = input[j];
+            forwardProp();
+            ((OutputLayer)layers[layers.Count - 1]).backProp(target);
+            for (int i = layers.Count - 2; i >= 0; i--)
+                layers[i].backProp(layers[i + 1]);
+            for (int i = 0; i < layers.Count; i++)
+                layers[i].changeWeights();
+        }
+
         public void train(int numTrainCycles, int numData, double[][] input, double[][] target)
         {
             for (int d = 0; d < numTrainCycles; d++)
             {
                 Random rnd = new Random();
                 rnd.Next(0, numData - 1);
-                for (int i = 0; i < numFirstLayerNeurons; i++)
-                    for (int j = 0; j < numInputs; j++)
-                        layers[0].neurons[i].input[j] = input[rnd][j];
-                forwardProp();
-                for (int i = 0; i < numOutputs; i++)
-                    ((OutputLayer)layers[layers.Count - 1]).target[i] = target[rnd][i];
-                ((OutputLayer)layers[layers.Count - 1]).backProp();
-                for (int i = layers.Count - 2; i >= 0; i--)
-                    layers[i].backProp(layers[i + 1]);
-                for (int i = 0; i < layers.Count; i++)
-                    layers[i].changeWeights();
+                trainSingle(input[rnd], target[rnd]);
             }
+        }
+
+        public double[] getAnswer(double[] input)
+        {
+            for (int i = 0; i < numFirstLayerNeurons; i++)
+                for (int j = 0; j < numInputs; j++)
+                    layers[0].neurons[i].input[j] = input[j];
+            forwardProp();
+            double[] output = new double[numOutputs];
+            for (int i = 0; i < numOutputs; i++)
+                output[i] = layers[layers.Count - 1].neurons[i].output;
+            return output;
         }
     }
 }
