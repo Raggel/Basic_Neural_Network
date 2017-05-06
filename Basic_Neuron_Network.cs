@@ -4,8 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Basic_Neural_Network
+namespace Basic_Neuron_Network
 {
+    public enum layerType
+    {
+        HiddenLayer,
+        OutputLayer
+    }
+
     public class Neuron
     {
         protected double _sumInputs;
@@ -146,34 +152,28 @@ namespace Basic_Neural_Network
         }
     }
 
-    public class NeuralNetwork
+    public class NeuronNetwork
     {
         List<Layer> layers;
         int numOutputs;
         int numInputs;
         int numFirstLayerNeurons;
 
-        public NeuralNetwork(int numOutputs, int numInputs, int numFirstLayerNeurons, int numFirstLayerNeuronsInputs)
+        public NeuronNetwork(int numInputs, int numFirstLayerNeurons)
         {
-            this.numOutputs = numOutputs;
             this.numInputs = numInputs;
             this.numFirstLayerNeurons = numFirstLayerNeurons;
             layers = new List<Layer>();
-            layers.Add(new HiddenLayer(numFirstLayerNeurons, numFirstLayerNeuronsInputs));
-        }
-
-        public enum layerType
-        {
-            HiddenLayer,
-            OutputLayer
+            layers.Add(new HiddenLayer(numFirstLayerNeurons, numInputs));
         }
 
         public void addLayer(int numNeurons, layerType layerType)
         {
             if (layerType == layerType.HiddenLayer)
-                layers.Add(new HiddenLayer(numNeurons, numOutputs));
+                layers.Add(new HiddenLayer(numNeurons, (layers.Last()).numNeurons)); 
             if (layerType == layerType.OutputLayer)
-                layers.Add(new OutputLayer(numNeurons, numOutputs));
+                layers.Add(new OutputLayer(numNeurons, (layers.Last()).numNeurons));
+            numOutputs = numNeurons;
         }
 
         public void forwardProp()
@@ -214,11 +214,12 @@ namespace Basic_Neural_Network
 
         public void train(int numTrainCycles, int numData, double[][] input, double[][] target)
         {
+            int iRnd;
             for (int d = 0; d < numTrainCycles; d++)
             {
                 Random rnd = new Random();
-                rnd.Next(0, numData - 1);
-                trainSingle(input[rnd], target[rnd]);
+                iRnd = rnd.Next(0, numData - 1);
+                trainSingle(input[iRnd], target[iRnd]);
             }
         }
 
