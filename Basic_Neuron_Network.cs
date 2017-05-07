@@ -34,22 +34,7 @@ namespace Basic_Neuron_Network
             _sumInputsChanged = true;
         }
 
-        protected double _output;
-        protected bool _outputChanged;
-
-        public double output { get { if (_outputChanged) return _calcOutput(); else return _output; } }
-
-        protected double _calcOutput()
-        {
-            _output = afn(sumInputs);
-            _outputChanged = false;
-            return _output;
-        }
-
-        public void outputSetChanged()
-        {
-            _outputChanged = true;
-        }
+        public double output { get { return afn(sumInputs); } }
 
         public int numInputs;
         public double[] input;
@@ -86,15 +71,18 @@ namespace Basic_Neuron_Network
 
     public abstract class Layer
     {
-        public const double eta = 1;
+        public const double eta = 0.01;
         public int numNeurons;
         public Neuron[] neurons;
 
         public void forwardProp(Layer prevLayer)
         {
             for (int i = 0; i < numNeurons; i++)
+            {
                 for (int j = 0; j < neurons[i].numInputs; j++)
                     neurons[i].input[j] = prevLayer.neurons[i].output;
+                neurons[i].sumSetChanged();
+            }
         }
 
         public void changeWeights()
@@ -154,7 +142,7 @@ namespace Basic_Neuron_Network
 
     public class NeuronNetwork
     {
-        List<Layer> layers;
+        public List<Layer> layers;
         int numOutputs;
         int numInputs;
         int numFirstLayerNeurons;
@@ -190,10 +178,15 @@ namespace Basic_Neuron_Network
                 double singleTestAcc = 0;
                 for (int i = 0; i < numFirstLayerNeurons; i++)
                     for (int j = 0; j < numInputs; j++)
+                    {
                         layers[0].neurons[i].input[j] = input[d][j];
+                        layers[0].neurons[i].sumSetChanged();
+                    }
                 forwardProp();
                 for (int i = 0; i < numOutputs; i++)
+                {
                     singleTestAcc += 1 - Math.Abs(target[d][i] - layers[layers.Count - 1].neurons[i].output);
+                }
                 accuracy += singleTestAcc / numOutputs;
             }
             return accuracy / numData;
@@ -202,8 +195,11 @@ namespace Basic_Neuron_Network
         public void trainSingle(double[] input, double[] target)
         {
             for (int i = 0; i < numFirstLayerNeurons; i++)
+            {
                 for (int j = 0; j < numInputs; j++)
                     layers[0].neurons[i].input[j] = input[j];
+                layers[0].neurons[i].sumSetChanged();
+            }
             forwardProp();
             ((OutputLayer)layers[layers.Count - 1]).backProp(target);
             for (int i = layers.Count - 2; i >= 0; i--)
@@ -227,11 +223,17 @@ namespace Basic_Neuron_Network
         {
             for (int i = 0; i < numFirstLayerNeurons; i++)
                 for (int j = 0; j < numInputs; j++)
+                {
                     layers[0].neurons[i].input[j] = input[j];
+                    layers[0].neurons[i].sumSetChanged();
+                }
             forwardProp();
+
             double[] output = new double[numOutputs];
             for (int i = 0; i < numOutputs; i++)
+            {
                 output[i] = layers[layers.Count - 1].neurons[i].output;
+            }
             return output;
         }
     }
