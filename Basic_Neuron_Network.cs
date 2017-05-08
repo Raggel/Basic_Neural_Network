@@ -63,15 +63,15 @@ namespace Basic_Neuron_Network
             deltaW = new double[numInputs];
             Random rand = new Random();
             for (int i = 0; i < numInputs; i++)
-                weight[i] = rand.NextDouble() - 0.5;
-            shift = rand.NextDouble() - 0.5;
+                weight[i] = rand.NextDouble() - 0.9; // было 0.5
+            shift = rand.NextDouble() - 0.9; // было 0.5
             _sumInputsChanged = true;
         }
     }
 
     public abstract class Layer
     {
-        public const double eta = 0.01;
+        public const double eta = 0.001;
         public int numNeurons;
         public Neuron[] neurons;
 
@@ -80,7 +80,7 @@ namespace Basic_Neuron_Network
             for (int i = 0; i < numNeurons; i++)
             {
                 for (int j = 0; j < neurons[i].numInputs; j++)
-                    neurons[i].input[j] = prevLayer.neurons[i].output;
+                    neurons[i].input[j] = prevLayer.neurons[j].output;
                 neurons[i].sumSetChanged();
             }
         }
