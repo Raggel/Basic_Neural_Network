@@ -63,8 +63,8 @@ namespace Basic_Neuron_Network
             deltaW = new double[numInputs];
             Random rand = new Random();
             for (int i = 0; i < numInputs; i++)
-                weight[i] = rand.NextDouble() - 0.9; // было 0.5
-            shift = rand.NextDouble() - 0.9; // было 0.5
+                weight[i] = rand.NextDouble() - 0.5;
+            shift = rand.NextDouble() - 0.5;
             _sumInputsChanged = true;
         }
     }
@@ -102,7 +102,7 @@ namespace Basic_Neuron_Network
                 neurons[i].error = nextLayerError * neurons[i].pafn(neurons[i].sumInputs);
                 for (int j = 0; j < neurons[i].numInputs; j++)
                     neurons[i].deltaW[j] = eta * neurons[i].error * neurons[i].input[j];
-                neurons[i].shift = neurons[i].shift + eta * neurons[i].error;
+                neurons[i].shift += eta * neurons[i].error;
             }
         }
         public Layer(int numNeurons, int numInputs)
