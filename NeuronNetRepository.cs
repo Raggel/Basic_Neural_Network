@@ -47,6 +47,8 @@ namespace Basic_Neuron_Network
             BinaryWriter bw = new BinaryWriter(File.OpenWrite(fileName));
             foreach (Layer l in net.layers)
                 saveLayer(l, bw);
+            bw.Write(net.trainCount);
+            bw.Write(net.eta);
             bw.Close();
             bw.Dispose();
         }
@@ -56,6 +58,8 @@ namespace Basic_Neuron_Network
             BinaryReader br = new BinaryReader(File.OpenRead(fileName));
             for (int i = 0; i < net.layers.Count; i++)
                 loadLayer(net.layers[i], br);
+            net.trainCount = br.ReadInt32();
+            net.eta = br.ReadDouble();
             br.Close();
             br.Dispose();
         }

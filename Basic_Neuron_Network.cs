@@ -71,7 +71,6 @@ namespace Basic_Neuron_Network
 
     public abstract class Layer
     {
-        public const double eta = 0.001;
         public int numNeurons;
         public Neuron[] neurons;
 
@@ -92,7 +91,7 @@ namespace Basic_Neuron_Network
                     neurons[i].weight[j] += neurons[i].deltaW[j];
         }
 
-        public  void backProp(Layer nextLayer)
+        public  void backProp(Layer nextLayer, double eta)
         {
             for (int i = 0; i < numNeurons; i++)
             {
@@ -128,7 +127,7 @@ namespace Basic_Neuron_Network
         {
         }
 
-        public void backProp(double[] target)
+        public void backProp(double[] target, double eta)
         {
             for (int i = 0; i < numNeurons; i++)
             {
@@ -142,13 +141,16 @@ namespace Basic_Neuron_Network
 
     public class NeuronNetwork
     {
+        public double eta;
+        public int trainCount = 0;
         public List<Layer> layers;
         int numOutputs;
         int numInputs;
         int numFirstLayerNeurons;
 
-        public NeuronNetwork(int numInputs, int numFirstLayerNeurons)
+        public NeuronNetwork(int numInputs, int numFirstLayerNeurons, double eta = 0.1)
         {
+            this.eta = eta;
             this.numInputs = numInputs;
             this.numFirstLayerNeurons = numFirstLayerNeurons;
             layers = new List<Layer>();
@@ -164,35 +166,13 @@ namespace Basic_Neuron_Network
             numOutputs = numNeurons;
         }
 
-        public void forwardProp()
+        private void forwardProp()
         {
             for (int i = 1; i < layers.Count; i++)
                 layers[i].forwardProp(layers[i-1]);
         }
 
-        public double checkPerformance(int numData, double[][] input, double[][] target)
-        {
-            double accuracy = 0;
-            for (int d = 0; d < numData; d++)
-            {
-                double singleTestAcc = 0;
-                for (int i = 0; i < numFirstLayerNeurons; i++)
-                    for (int j = 0; j < numInputs; j++)
-                    {
-                        layers[0].neurons[i].input[j] = input[d][j];
-                        layers[0].neurons[i].sumSetChanged();
-                    }
-                forwardProp();
-                for (int i = 0; i < numOutputs; i++)
-                {
-                    singleTestAcc += 1 - Math.Abs(target[d][i] - layers[layers.Count - 1].neurons[i].output);
-                }
-                accuracy += singleTestAcc / numOutputs;
-            }
-            return accuracy / numData;
-        }
-
-        public void trainSingle(double[] input, double[] target)
+        public void train(double[] input, double[] target)
         {
             for (int i = 0; i < numFirstLayerNeurons; i++)
             {
@@ -201,22 +181,14 @@ namespace Basic_Neuron_Network
                 layers[0].neurons[i].sumSetChanged();
             }
             forwardProp();
-            ((OutputLayer)layers[layers.Count - 1]).backProp(target);
+            ((OutputLayer)layers[layers.Count - 1]).backProp(target, eta);
             for (int i = layers.Count - 2; i >= 0; i--)
-                layers[i].backProp(layers[i + 1]);
+                layers[i].backProp(layers[i + 1], eta);
             for (int i = 0; i < layers.Count; i++)
                 layers[i].changeWeights();
-        }
 
-        public void train(int numTrainCycles, int numData, double[][] input, double[][] target)
-        {
-            int iRnd;
-            for (int d = 0; d < numTrainCycles; d++)
-            {
-                Random rnd = new Random();
-                iRnd = rnd.Next(0, numData - 1);
-                trainSingle(input[iRnd], target[iRnd]);
-            }
+            if (++trainCount % 60000 == 0)
+                eta = eta * 0.5;
         }
 
         public double[] getAnswer(double[] input)
